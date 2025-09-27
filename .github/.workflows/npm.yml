@@ -1,0 +1,64 @@
+name: cursodevops
+on:
+  push:
+    branches:
+      - main
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build-minicurso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Repo
+        uses: actions/checkout@v4
+
+      - name: Prepara S.O para Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Ajuste path e Adiciona Files
+        run: | 
+          pwd && ls -alh 
+          cd minic-curso-devops
+          cat << EOF >> vite.config.js
+          import { defineConfig } from 'vite'
+          // https://vitejs.dev/config/
+          export default defineConfig({
+          // Adicione esta linha:
+          base: '/minic-curso-devops/', 
+          } )
+          EOF
+          ls -alh
+
+      - name: Instala dependencias e Build
+        run: |
+          pwd && ls -alh  
+          cd minic-curso-devops         
+          npm install
+          npm run build
+
+      - name: Fazer o Upload do codigo
+        uses: actions/upload-artifact@v4
+        with: 
+          name: dist-files
+          path: minic-curso-devops/dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-minicurso
+    steps:
+      - name: Download do Arquivos 
+        uses: actions/download-artifact@v4
+        with: 
+          name: dist-files
+          path: dist
+      - name: Enviar arquivos para Server 
+        run: | 
+          ls -alh 
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CHAVE_MINI_CURSO }}" > ~/.ssh/miniCurso1.pem
+          chmod 600 ~/.ssh/miniCurso1.pem
+          scp -i ~/.ssh/miniCurso1.pem  -o StrictHostKeyChecking=no -r dist/* ubuntu@ec2-34-228-156-255.compute-1.amazonaws.com:/var/www/html/mini-curso-devops
