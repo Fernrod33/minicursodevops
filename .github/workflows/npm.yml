@@ -22,7 +22,7 @@ jobs:
       - name: Ajuste path e Adiciona Files
         run: | 
           pwd && ls -alh 
-          cd minic-curso-devops
+          cd mini-curso-devops
           cat << EOF >> vite.config.js
           import { defineConfig } from 'vite'
           // https://vitejs.dev/config/
@@ -36,7 +36,7 @@ jobs:
       - name: Instala dependencias e Build
         run: |
           pwd && ls -alh  
-          cd minic-curso-devops         
+          cd mini-curso-devops         
           npm install
           npm run build
 
@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with: 
           name: dist-files
-          path: minic-curso-devops/dist
+          path: mini-curso-devops/dist
 
   deploy:
     runs-on: ubuntu-latest
